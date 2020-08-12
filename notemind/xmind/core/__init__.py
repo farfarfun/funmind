@@ -285,7 +285,7 @@ class Element(Node):
     def getTextContent(self):
         text = []
         for node in self._node.childNodes:
-            if node.nodeType == DOM.Node.TEXT_NODE:
+            if node.nodeType == DOM.Cell.TEXT_NODE:
                 text.append(node.data)
 
         if not len(text) > 0:
@@ -296,7 +296,7 @@ class Element(Node):
 
     def setTextContent(self, data):
         for node in self._node.childNodes:
-            if node.nodeType == DOM.Node.TEXT_NODE:
+            if node.nodeType == DOM.Cell.TEXT_NODE:
                 self._node.removeChild(node)
 
         text = DOM.Text()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding:utf-8 _*_
-import xmind
-from xmind.core.markerref import MarkerId
+from notemind import xmind
+from notemind.xmind.core.markerref import MarkerId
 
 
 def update_xmind():
