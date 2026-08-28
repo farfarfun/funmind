@@ -1,5 +1,5 @@
-from notemind.xmind.core.loader import WorkbookLoader
-from notemind.xmind.core.saver import WorkbookSaver
+from funmind.xmind.core.loader import WorkbookLoader
+from funmind.xmind.core.saver import WorkbookSaver
 
 
 def load(path):

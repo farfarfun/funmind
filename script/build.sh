@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-name=notemind
+name=funmind
 echo $name
 
 if [ "$1" = "build" ]; then

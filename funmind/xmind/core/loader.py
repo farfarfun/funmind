@@ -1,5 +1,5 @@
-from notemind.xmind.core.comments import CommentsBookDocument
-from notemind.xmind.core.styles import StylesBookDocument
+from funmind.xmind.core.comments import CommentsBookDocument
+from funmind.xmind.core.styles import StylesBookDocument
 
 from . import const
 from .workbook import WorkbookDocument

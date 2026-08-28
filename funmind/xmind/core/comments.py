@@ -6,8 +6,8 @@ xmind.core.comments implements encapsulation of the XMind comments.xml.
 """
 import random
 
-from notemind.xmind import utils
-from notemind.xmind.core import Document, const, Element
+from funmind.xmind import utils
+from funmind.xmind.core import Document, const, Element
 
 
 class CommentsBookDocument(Document):

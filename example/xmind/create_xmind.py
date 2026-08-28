@@ -1,7 +1,7 @@
-import notemind.xmind as xmind
-from notemind.xmind.core.const import TOPIC_DETACHED
-from notemind.xmind.core.markerref import MarkerId
-from notemind.xmind.core.topic import TopicElement
+import funmind.xmind as xmind
+from funmind.xmind.core.const import TOPIC_DETACHED
+from funmind.xmind.core.markerref import MarkerId
+from funmind.xmind.core.topic import TopicElement
 
 
 def gen_my_xmind_file():

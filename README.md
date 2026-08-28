@@ -2,7 +2,7 @@
 
 XMind 思维导图文件（`.xmind`）读写 SDK：基于 [zhuifengshen/xmind](https://github.com/zhuifengshen/xmind) 二次打包，支持用 Python 创建、解析、修改 `.xmind` 工作簿（workbook / sheet / topic），包括子主题、分离主题、标记（marker）、批注（comment）、超链接、关系线等元素。目前仅有本体代码和示例脚本，尚无独立文档站点或发布计划。
 
-> **注意：仓库名与导入名不同。** 仓库名是 `funmind`，但实际 Python 包目录、`pyproject.toml` 声明的包名、以及历史上发布过的 PyPI 名都是 `notemind`（`note*` → `fun*` 改名时遗留未改）。`pip install` 和 `import` 都要用 `notemind`，不是 `funmind`。经查 PyPI（`pypi.org/pypi/notemind/json` 与 `pypi.org/pypi/funmind/json`）均返回 404，**目前并未实际发布到 PyPI**，只能本地安装使用。
+包名/导入名与仓库名一致，均为 `funmind`。经查 PyPI（`pypi.org/pypi/funmind/json`）返回 404，**目前并未实际发布到 PyPI**，只能本地安装使用。
 
 ## 安装
 
@@ -19,8 +19,8 @@ pip install .
 ### 创建 XMind 文件
 
 ```python
-import notemind.xmind as xmind
-from notemind.xmind.core.markerref import MarkerId
+import funmind.xmind as xmind
+from funmind.xmind.core.markerref import MarkerId
 
 workbook = xmind.load("my.xmind")  # 文件不存在则新建
 sheet1 = workbook.getPrimarySheet()
@@ -37,7 +37,7 @@ xmind.save(workbook, path="test.xmind")
 ### 解析 XMind 文件
 
 ```python
-from notemind import xmind
+from funmind import xmind
 
 workbook = xmind.load("demo.xmind")
 print(workbook.to_prettify_json())
@@ -51,8 +51,8 @@ for topic in root_topic.getSubTopics() or []:
 ### 修改已有 XMind 文件
 
 ```python
-from notemind import xmind
-from notemind.xmind.core.markerref import MarkerId
+from funmind import xmind
+from funmind.xmind.core.markerref import MarkerId
 
 workbook = xmind.load("demo.xmind")
 root_topic = workbook.getPrimarySheet().getRootTopic()

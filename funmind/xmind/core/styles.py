@@ -1,4 +1,4 @@
-from notemind.xmind.core import Document, const, Element
+from funmind.xmind.core import Document, const, Element
 
 
 class StylesBookDocument(Document):

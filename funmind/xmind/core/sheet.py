@@ -1,4 +1,4 @@
-from notemind.xmind import utils
+from funmind.xmind import utils
 
 from . import const
 from .mixin import WorkbookMixinElement
