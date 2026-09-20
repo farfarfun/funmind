@@ -1,5 +1,6 @@
 import os
 import random
+import re
 import tempfile
 import time
 import zipfile
@@ -7,6 +8,8 @@ from functools import wraps
 from hashlib import md5
 
 from xml.dom.minidom import parse, parseString
+
+_CAMEL_CASE_RE = re.compile(r'(?<!^)(?=[A-Z])')
 
 # ********** Misc **********
 temp_dir = tempfile.mkdtemp
@@ -105,16 +108,35 @@ def prevent(func):
     """
         Decorate func with this to prevent raising an Exception when
         an error is encountered
+
+        目前项目内暂无调用方，仅捕获 `Exception`（而非 `BaseException`），
+        以避免吞掉 `KeyboardInterrupt`/`SystemExit` 等控制流信号。
     """
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except BaseException:
+        except Exception:
             return
 
     return wrapper
+
+
+def add_snake_case_aliases(cls):
+    """为 cls 上驼峰命名的公开方法批量添加 snake_case 别名（委托原方法）。
+
+    本项目二次打包自上游 xmind 库，公开 API 大量沿用 Java/JS 风格的驼峰命名，
+    与 SPEC.md 要求的 snake_case 命名规范冲突。为避免破坏性改名导致下游代码断裂，
+    这里仅追加委托别名，原驼峰方法继续保留、行为不变。
+    """
+    for name in list(vars(cls)):
+        if name.startswith('_'):
+            continue
+        snake = _CAMEL_CASE_RE.sub('_', name).lower()
+        if snake != name and not hasattr(cls, snake):
+            setattr(cls, snake, getattr(cls, name))
+    return cls
 
 
 def check(attr):

@@ -22,7 +22,7 @@ class NotesElement(TopicMixinElement):
         if format is const.PLAIN_FORMAT_NOTE:
             _note = PlainNotes(node=_note, ownerTopic=self.getOwnerTopic())
         else:
-            raise Exception("Only support plain text notes right now")
+            raise NotImplementedError("Only support plain text notes right now, got format: %s" % format)
 
         return _note.getTextContent()
 

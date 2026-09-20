@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "牛哥", email = "farfarfun@qq.com" }]
-dependencies = []
+dependencies = ["farlog>=1.1.7"]
 
 [build-system]
 requires = ["hatchling"]
@@ -17,4 +17,4 @@ build-backend = "hatchling.build"
 packages = ["funmind"]
 
 [dependency-groups]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "funbuild>=1.6.66"]

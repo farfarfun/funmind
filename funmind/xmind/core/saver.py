@@ -1,8 +1,14 @@
 import codecs
 import os
+import zipfile
+
+from farlog import getLogger
 
 from . import const
 from .. import utils
+from ..exceptions import InvalidXMindFileError
+
+logger = getLogger(__name__)
 
 
 class WorkbookSaver(object):
@@ -47,7 +53,7 @@ class WorkbookSaver(object):
 
         filename, suffix = utils.split_ext(original_xmind_file)
         if suffix != const.XMIND_EXT:
-            raise Exception('XMind filename require a "%s" extension' % const.XMIND_EXT)
+            raise InvalidXMindFileError('XMind filename require a "%s" extension' % const.XMIND_EXT)
 
         original_zip = utils.extract(original_xmind_file)
         try:
@@ -62,8 +68,8 @@ class WorkbookSaver(object):
                         os.makedirs(os.path.dirname(target_file))
                     with open(target_file, 'xb') as f:
                         f.write(original_zip.read(name))
-        except BaseException:
-            pass
+        except (FileNotFoundError, zipfile.BadZipFile, KeyError) as e:
+            logger.warning("读取附件引用失败，已跳过：{}，原因：{}", original_xmind_file, e)
 
         return reference_dir
 

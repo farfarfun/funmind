@@ -148,3 +148,6 @@ class SheetElement(WorkbookMixinElement):
             'topic': root_topic.getData()
         }
         return data
+
+
+utils.add_snake_case_aliases(SheetElement)

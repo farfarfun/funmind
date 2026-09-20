@@ -441,6 +441,9 @@ class TopicElement(WorkbookMixinElement):
         return data
 
 
+utils.add_snake_case_aliases(TopicElement)
+
+
 class ChildrenElement(WorkbookMixinElement):
     TAG_NAME = const.TAG_CHILDREN
 

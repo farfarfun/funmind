@@ -6,6 +6,7 @@ from .mixin import WorkbookMixinElement
 from .sheet import SheetElement
 from .topic import TopicElement
 from .. import utils
+from ..exceptions import WorkbookError
 
 
 class WorkbookElement(WorkbookMixinElement):
@@ -29,7 +30,7 @@ class WorkbookElement(WorkbookMixinElement):
             self.addSheet(sheet)
 
     def setOwnerWorkbook(self, workbook):
-        raise Exception("""WorkbookDocument allowed only contains one WorkbookElement""")
+        raise WorkbookError("WorkbookDocument allowed only contains one WorkbookElement")
 
     def getSheets(self):
         sheets = self.getChildNodesByTagName(const.TAG_SHEET)
@@ -97,6 +98,9 @@ class WorkbookElement(WorkbookMixinElement):
         return self.getAttribute(const.ATTR_VERSION)
 
 
+utils.add_snake_case_aliases(WorkbookElement)
+
+
 class WorkbookDocument(Document):
     """ `WorkbookDocument` as central object correspond XMind workbook.
     """
@@ -144,7 +148,7 @@ class WorkbookDocument(Document):
             rel = sheet1.createRelationship(topic1.getID(), topic2.getID(), title)
             return rel
         else:
-            raise Exception("Topics not on the same sheet!")
+            raise WorkbookError("Topics not on the same sheet!")
 
     def createTopic(self):
         """
@@ -236,3 +240,6 @@ class WorkbookDocument(Document):
         Convert the contents of the workbook to a json format
         """
         return json.dumps(self.getData(), indent=4, separators=(',', ': '), ensure_ascii=False)
+
+
+utils.add_snake_case_aliases(WorkbookDocument)

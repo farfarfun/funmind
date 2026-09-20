@@ -1,17 +1,24 @@
+import zipfile
+
+from farlog import getLogger
 from funmind.xmind.core.comments import CommentsBookDocument
 from funmind.xmind.core.styles import StylesBookDocument
 
 from . import const
 from .workbook import WorkbookDocument
 from .. import utils
+from ..exceptions import InvalidXMindFileError
+
+logger = getLogger(__name__)
 
 
 class WorkbookLoader(object):
-    def __init__(self, path):
-        """ Load XMind workbook from given path
+    def __init__(self, path: str) -> None:
+        """加载指定路径的 XMind 工作簿。
 
-        :param path:    path to XMind file. If not an existing file, will not raise an exception.
-
+        :param path: XMind 文件路径。文件不存在时视为新建工作簿，不会抛出异常；
+            但文件存在且已损坏（非合法 zip 包）时会记录警告并同样按空工作簿处理。
+        :raises InvalidXMindFileError: 当文件名缺少 `.xmind` 扩展名时抛出。
         """
         super(WorkbookLoader, self).__init__()
         self._input_source = utils.get_abs_path(path)
@@ -19,7 +26,9 @@ class WorkbookLoader(object):
         file_name, ext = utils.split_ext(self._input_source)
 
         if ext != const.XMIND_EXT:
-            raise Exception("The XMind filename is missing the '%s' extension!" % const.XMIND_EXT)
+            raise InvalidXMindFileError(
+                "The XMind filename is missing the '%s' extension: %s" % (const.XMIND_EXT, path)
+            )
 
         # Input Stream
         self._content_stream = None
@@ -36,8 +45,10 @@ class WorkbookLoader(object):
                     elif stream == const.COMMENTS_XML:
                         self._comments_steam = utils.parse_dom_string(input_stream.read(stream))
 
-        except BaseException:
-            pass
+        except FileNotFoundError:
+            logger.debug("XMind 文件不存在，将创建新工作簿：{}", self._input_source)
+        except (zipfile.BadZipFile, KeyError) as e:
+            logger.warning("XMind 文件已损坏，按新工作簿处理：{}，原因：{}", self._input_source, e)
 
     def get_workbook(self):
         """ Parse XMind file to `WorkbookDocument` object and return
