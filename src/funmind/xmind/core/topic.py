@@ -37,7 +37,7 @@ class TopicElement(WorkbookMixinElement):
         self.setAttribute(const.ATTR_HREF, hyperlink)
         # self.updateModifiedTime()
 
-    def setTitle(self, text):
+    def setTitle(self, text: str) -> "TopicElement":
         _title = self._get_title()
         title = TitleElement(_title, self.getOwnerWorkbook())
         title.setTextContent(text)
@@ -48,11 +48,8 @@ class TopicElement(WorkbookMixinElement):
         # self.updateModifiedTime()
         return self
 
-    def setPlainNotes(self, content):
-        """ Set plain text notes to topic
-
-        :param content: utf8 plain text
-        """
+    def setPlainNotes(self, content: str) -> PlainNotes:
+        """为主题设置纯文本备注。"""
         new = PlainNotes(content, None, self)
         _notes = self._get_notes()
         if not _notes:

@@ -157,17 +157,12 @@ class WorkbookDocument(Document):
         """
         return TopicElement(None, self)
 
-    def getSheets(self):
-        """
-        List all sheets under workbook, if not sheets then return
-        empty list
-        """
+    def getSheets(self) -> list[SheetElement]:
+        """返回工作簿中的全部工作表，没有工作表时返回空列表。"""
         return self._workbook_element.getSheets()
 
-    def getPrimarySheet(self):
-        """
-        Get the first sheet under workbook.
-        """
+    def getPrimarySheet(self) -> SheetElement:
+        """返回工作簿中的第一个工作表。"""
         return self._workbook_element.getSheetByIndex(0)
 
     def createSheet(self, index=-1):

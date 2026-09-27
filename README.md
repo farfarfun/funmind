@@ -75,5 +75,6 @@ xmind.save(workbook, path="xmind_update_demo.xmind")
 
 - 🏠 组织主页：<https://github.com/farfarfun>
 - 📧 联系：farfarfun@qq.com
+- 📦 PyPI：<https://pypi.org/user/niuliangtao/>
 
 本项目基于 [MIT](LICENSE) 协议开源。

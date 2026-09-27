@@ -15,12 +15,9 @@ _CAMEL_CASE_RE = re.compile(r'(?<!^)(?=[A-Z])')
 temp_dir = tempfile.mkdtemp
 
 
-def generate_id():
-    """
-    Generate unique 26-digit random string
-    """
-    # FIXME: Why not use something like the builtin uuid.uuid1() method?
-    # md5 current time get 32-digit random string
+def generate_id() -> str:
+    """生成唯一的 26 位随机字符串。"""
+    # 使用当前时间和随机数生成稳定长度的标识符。
     timestamp = md5(str(get_current_time()).encode('utf-8')).hexdigest()
     lotter = md5(str(random.random()).encode('utf-8')).hexdigest()
     _id = timestamp[19:] + lotter[:13]
@@ -115,10 +112,7 @@ def prevent(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception:
-            return
+        return func(*args, **kwargs)
 
     return wrapper
 

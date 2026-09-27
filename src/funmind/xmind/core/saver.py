@@ -88,7 +88,9 @@ class WorkbookSaver(object):
         new_path = utils.get_abs_path(new_path)
         new_filename, new_suffix = utils.split_ext(new_path)
         if new_suffix != const.XMIND_EXT:
-            raise Exception('XMind filename require a "%s" extension' % const.XMIND_EXT)
+            raise InvalidXMindFileError(
+                'XMind 文件必须使用 "%s" 扩展名' % const.XMIND_EXT
+            )
 
         content = self._get_content_xml()
         if not only_content:

@@ -20,9 +20,9 @@
 - `script/build.sh` 改为统一走 `funbuild`，移除历史遗留的 `setup.py`/`twine` 流程与隐式
   `git commit && push`/`clear_history` 强制推送逻辑。
 
-### Breaking
+### 废弃
 
-- Renamed the package from `notemind` to `funmind` to match the repository name (`note*` → `fun*` cleanup, part of farfarfun/todo-list#298). The import name and the PyPI package name declared in `pyproject.toml` both changed:
+- `notemind` 已更名为 `funmind`，以匹配仓库名称。迁移方式如下：
   - `import notemind...` -> `import funmind...`
   - PyPI package name `notemind` -> `funmind`
-  - Checked `pip index versions notemind`: no distribution was ever published under the old name, so there is nothing to forward. If that changes, publishing a final forwarding release of `notemind` that points users to `funmind` is a manual follow-up for the repo owner, not automated here.
+  - 当前未发现旧包已发布；如后续发现旧包存在，需由维护者发布迁移提示版本。
