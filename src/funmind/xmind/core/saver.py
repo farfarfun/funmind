@@ -53,7 +53,9 @@ class WorkbookSaver(object):
 
         filename, suffix = utils.split_ext(original_xmind_file)
         if suffix != const.XMIND_EXT:
-            raise InvalidXMindFileError('XMind filename require a "%s" extension' % const.XMIND_EXT)
+            raise InvalidXMindFileError(
+                f'XMind 文件 "{original_xmind_file}" 必须使用 "{const.XMIND_EXT}" 扩展名'
+            )
 
         original_zip = utils.extract(original_xmind_file)
         try:
@@ -89,7 +91,7 @@ class WorkbookSaver(object):
         new_filename, new_suffix = utils.split_ext(new_path)
         if new_suffix != const.XMIND_EXT:
             raise InvalidXMindFileError(
-                'XMind 文件必须使用 "%s" 扩展名' % const.XMIND_EXT
+                f'XMind 文件 "{new_path}" 必须使用 "{const.XMIND_EXT}" 扩展名'
             )
 
         content = self._get_content_xml()

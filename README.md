@@ -23,13 +23,13 @@ import funmind.xmind as xmind
 from funmind.xmind.core.markerref import MarkerId
 
 workbook = xmind.load("my.xmind")  # 文件不存在则新建
-sheet1 = workbook.getPrimarySheet()
-sheet1.setTitle("first sheet")
+sheet1 = workbook.get_primary_sheet()
+sheet1.set_title("first sheet")
 
-root_topic1 = sheet1.getRootTopic()
-root_topic1.setTitle("root node")
-sub_topic1 = root_topic1.addSubTopic()
-sub_topic1.setTitle("first sub topic")
+root_topic1 = sheet1.get_root_topic()
+root_topic1.set_title("root node")
+sub_topic1 = root_topic1.add_sub_topic()
+sub_topic1.set_title("first sub topic")
 
 xmind.save(workbook, path="test.xmind")
 ```
@@ -42,10 +42,10 @@ from funmind import xmind
 workbook = xmind.load("demo.xmind")
 print(workbook.to_prettify_json())
 
-sheet = workbook.getPrimarySheet()
-root_topic = sheet.getRootTopic()
-for topic in root_topic.getSubTopics() or []:
-    print(topic.getTitle())
+sheet = workbook.get_primary_sheet()
+root_topic = sheet.get_root_topic()
+for topic in root_topic.get_sub_topics() or []:
+    print(topic.get_title())
 ```
 
 ### 修改已有 XMind 文件
@@ -55,8 +55,8 @@ from funmind import xmind
 from funmind.xmind.core.markerref import MarkerId
 
 workbook = xmind.load("demo.xmind")
-root_topic = workbook.getPrimarySheet().getRootTopic()
-root_topic.addMarker(MarkerId.starRed)
+root_topic = workbook.get_primary_sheet().get_root_topic()
+root_topic.add_marker(MarkerId.starRed)
 
 # 保存为新文件（推荐），或不传 path 直接覆盖原文件
 xmind.save(workbook, path="xmind_update_demo.xmind")
@@ -74,7 +74,7 @@ xmind.save(workbook, path="xmind_update_demo.xmind")
 涵盖云存储、数据处理、AI、多媒体与开发工具链等方向。
 
 - 🏠 组织主页：<https://github.com/farfarfun>
-- 📧 联系：farfarfun@qq.com
 - 📦 PyPI：<https://pypi.org/user/niuliangtao/>
+- 📧 联系：farfarfun@qq.com
 
 本项目基于 [MIT](LICENSE) 协议开源。

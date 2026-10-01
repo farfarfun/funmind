@@ -1,3 +1,5 @@
+import warnings
+
 from . import const
 from .labels import LabelsElement, LabelElement
 from .markerref import MarkerId
@@ -37,7 +39,8 @@ class TopicElement(WorkbookMixinElement):
         self.setAttribute(const.ATTR_HREF, hyperlink)
         # self.updateModifiedTime()
 
-    def setTitle(self, text: str) -> "TopicElement":
+    def set_title(self, text: str) -> "TopicElement":
+        """设置主题标题并返回当前主题。"""
         _title = self._get_title()
         title = TitleElement(_title, self.getOwnerWorkbook())
         title.setTextContent(text)
@@ -47,6 +50,15 @@ class TopicElement(WorkbookMixinElement):
 
         # self.updateModifiedTime()
         return self
+
+    def setTitle(self, text: str) -> "TopicElement":
+        """兼容旧接口，请改用 :meth:`set_title`。"""
+        warnings.warn(
+            "setTitle 已弃用，请改用 set_title，将于 1.0 移除",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.set_title(text)
 
     def setPlainNotes(self, content: str) -> PlainNotes:
         """为主题设置纯文本备注。"""
@@ -117,16 +129,12 @@ class TopicElement(WorkbookMixinElement):
                 marker_list.append(MarkerRefElement(i, self.getOwnerWorkbook()))
         return marker_list
 
-    def addMarker(self, markerId):
-        """
-        Add a marker to this topic
-        :param markerId: a markerId indicating the marker to add
-        :return: a MarkerRefElement instance
-        """
-        if not markerId:
+    def add_marker(self, marker_id: MarkerId | str) -> MarkerRefElement | None:
+        """为主题添加标记，并返回对应的标记元素。"""
+        if not marker_id:
             return None
-        if isinstance(markerId, str):
-            markerId = MarkerId(markerId)
+        if isinstance(marker_id, str):
+            marker_id = MarkerId(marker_id)
 
         refs = self._get_markerrefs()
         if not refs:
@@ -140,15 +148,24 @@ class TopicElement(WorkbookMixinElement):
         if markers:
             for m in markers:
                 mre = MarkerRefElement(m, self.getOwnerWorkbook())
-                # look for a marker of same family
-                if mre.getMarkerId().getFamily() == markerId.getFamily():
-                    mre.setMarkerId(markerId)
+                # 找到同类标记时替换原标记。
+                if mre.getMarkerId().getFamily() == marker_id.getFamily():
+                    mre.setMarkerId(marker_id)
                     return mre
-        # not found so let's append it
+        # 没有同类标记时追加新标记。
         mre = MarkerRefElement(None, self.getOwnerWorkbook())
-        mre.setMarkerId(markerId)
+        mre.setMarkerId(marker_id)
         tmp.appendChild(mre)
         return mre
+
+    def addMarker(self, markerId: MarkerId | str) -> MarkerRefElement | None:
+        """兼容旧接口，请改用 :meth:`add_marker`。"""
+        warnings.warn(
+            "addMarker 已弃用，请改用 add_marker，将于 1.0 移除",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.add_marker(markerId)
 
     def getLabels(self):
         """

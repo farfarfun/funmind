@@ -5,7 +5,7 @@
 ### 新增
 
 - 补充真实单元测试（加载/保存/异常路径/snake_case 别名），替代此前的纯 import 冒烟测试。
-- 为公开方法追加 snake_case 别名（委托原驼峰方法），兼容 SPEC.md 命名规范要求。
+- 为历史驼峰方法提供 snake_case 公开入口，兼容 SPEC.md 命名规范要求。
 - 为核心异常路径引入 `InvalidXMindFileError`/`WorkbookError` 等领域异常，替代裸 `Exception`。
 
 ### 修复
@@ -22,6 +22,8 @@
 
 ### 废弃
 
+- `setTitle` / `addMarker` / `getPrimarySheet` 已弃用，请分别迁移到
+  `set_title` / `add_marker` / `get_primary_sheet`；旧接口将于 1.0 移除。
 - `notemind` 已更名为 `funmind`，以匹配仓库名称。迁移方式如下：
   - `import notemind...` -> `import funmind...`
   - PyPI package name `notemind` -> `funmind`

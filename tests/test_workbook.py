@@ -10,12 +10,23 @@ from funmind.xmind.exceptions import InvalidXMindFileError
 
 def test_load_missing_file_creates_empty_workbook(tmp_path):
     workbook = xmind.load(str(tmp_path / "missing.xmind"))
-    assert workbook.getPrimarySheet() is not None
+    assert workbook.get_primary_sheet() is not None
 
 
 def test_load_rejects_non_xmind_extension(tmp_path):
     with pytest.raises(InvalidXMindFileError):
         WorkbookLoader(str(tmp_path / "bad.txt"))
+
+
+def test_save_rejects_non_xmind_extension_with_path_context(tmp_path):
+    workbook = xmind.load(str(tmp_path / "source.xmind"))
+    invalid_path = tmp_path / "bad.txt"
+
+    with pytest.raises(InvalidXMindFileError) as exc_info:
+        xmind.save(workbook, path=str(invalid_path))
+
+    assert str(invalid_path) in str(exc_info.value)
+    assert ".xmind" in str(exc_info.value)
 
 
 def test_load_corrupted_file_falls_back_to_empty_workbook(tmp_path):
@@ -51,9 +62,17 @@ def test_save_then_load_round_trip(tmp_path):
     assert [t.get_title() for t in reloaded_root.get_sub_topics()] == ["sub topic"]
 
 
-def test_snake_case_aliases_delegate_to_camel_case(tmp_path):
+def test_deprecated_camel_case_methods_delegate_to_snake_case(tmp_path):
     workbook = xmind.load(str(tmp_path / "alias.xmind"))
-    sheet = workbook.getPrimarySheet()
+    with pytest.warns(DeprecationWarning, match="getPrimarySheet"):
+        sheet = workbook.getPrimarySheet()
     sheet.setTitle("via camelCase")
 
     assert sheet.get_title() == sheet.getTitle() == "via camelCase"
+
+    root_topic = sheet.get_root_topic()
+    with pytest.warns(DeprecationWarning, match="setTitle"):
+        root_topic.setTitle("deprecated title")
+    with pytest.warns(DeprecationWarning, match="addMarker"):
+        root_topic.addMarker(MarkerId.starRed)
+    assert root_topic.get_title() == "deprecated title"

@@ -1,4 +1,5 @@
 import json
+import warnings
 
 from . import Document
 from . import const
@@ -161,9 +162,18 @@ class WorkbookDocument(Document):
         """返回工作簿中的全部工作表，没有工作表时返回空列表。"""
         return self._workbook_element.getSheets()
 
-    def getPrimarySheet(self) -> SheetElement:
+    def get_primary_sheet(self) -> SheetElement:
         """返回工作簿中的第一个工作表。"""
         return self._workbook_element.getSheetByIndex(0)
+
+    def getPrimarySheet(self) -> SheetElement:
+        """兼容旧接口，请改用 :meth:`get_primary_sheet`。"""
+        warnings.warn(
+            "getPrimarySheet 已弃用，请改用 get_primary_sheet，将于 1.0 移除",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_primary_sheet()
 
     def createSheet(self, index=-1):
         """
