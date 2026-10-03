@@ -50,9 +50,8 @@ class WorkbookLoader(object):
         except (zipfile.BadZipFile, KeyError) as e:
             logger.warning("XMind 文件已损坏，按新工作簿处理：{}，原因：{}", self._input_source, e)
 
-    def get_workbook(self):
-        """ Parse XMind file to `WorkbookDocument` object and return
-        """
+    def get_workbook(self) -> WorkbookDocument:
+        """将已加载的 XMind 文件内容解析为 `WorkbookDocument` 对象并返回。"""
         path = self._input_source
         content = self._content_stream
         styles = self._styles_stream
@@ -63,16 +62,16 @@ class WorkbookLoader(object):
 
         return workbook
 
-    def get_stylesbook(self):
-        """ Parse Xmind styles.xml to `StylesBookDocument` object and return
-        """
+    def get_stylesbook(self) -> StylesBookDocument:
+        """将已加载的 styles.xml 内容解析为 `StylesBookDocument` 对象并返回。"""
         content = self._styles_stream
         path = self._input_source
 
         stylesbook = StylesBookDocument(node=content, path=path)
         return stylesbook
 
-    def get_commentsbook(self):
+    def get_commentsbook(self) -> CommentsBookDocument:
+        """将已加载的 comments.xml 内容解析为 `CommentsBookDocument` 对象并返回。"""
         content = self._comments_steam
         path = self._input_source
 

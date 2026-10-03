@@ -31,15 +31,18 @@ class RelationshipElement(WorkbookMixinElement):
             return TopicElement(end_point, owner_workbook)
 
     # FIXME: Convert the following to getter/setter
-    def setEnd1ID(self, id):
+    def setEnd1ID(self, id: str) -> "RelationshipElement":
+        """设置关系线起点主题的 id，并返回当前关系线。"""
         self.setAttribute(const.ATTR_END1, id)
         return self.updateModifiedTime()
 
-    def setEnd2ID(self, id):
+    def setEnd2ID(self, id: str) -> "RelationshipElement":
+        """设置关系线终点主题的 id，并返回当前关系线。"""
         self.setAttribute(const.ATTR_END2, id)
         return self.updateModifiedTime()
 
-    def setTitle(self, text):
+    def setTitle(self, text: str) -> "RelationshipElement":
+        """设置关系线标题，并返回当前关系线。"""
         _title = self._get_title()
         title = TitleElement(_title, self.getOwnerWorkbook())
         title.setTextContent(text)
@@ -49,19 +52,24 @@ class RelationshipElement(WorkbookMixinElement):
 
         return self.updateModifiedTime()
 
-    def getEnd1ID(self):
+    def getEnd1ID(self) -> str | None:
+        """返回关系线起点主题的 id。"""
         return self.getAttribute(const.ATTR_END1)
 
-    def getEnd2ID(self):
+    def getEnd2ID(self) -> str | None:
+        """返回关系线终点主题的 id。"""
         return self.getAttribute(const.ATTR_END2)
 
-    def getEnd1(self):
+    def getEnd1(self) -> "TopicElement | None":
+        """返回关系线起点对应的主题对象，找不到时返回 ``None``。"""
         return self._find_end_point(self.getEnd1ID())
 
-    def getEnd2(self):
+    def getEnd2(self) -> "TopicElement | None":
+        """返回关系线终点对应的主题对象，找不到时返回 ``None``。"""
         return self._find_end_point(self.getEnd2ID())
 
-    def getTitle(self):
+    def getTitle(self) -> str | None:
+        """返回关系线标题文本，未设置时返回 ``None``。"""
         title = self._get_title()
         if title:
             title = TitleElement(title, self.getOwnerWorkbook())
@@ -74,10 +82,8 @@ class RelationshipsElement(WorkbookMixinElement):
     def __init__(self, node=None, ownerWorkbook=None):
         super(RelationshipsElement, self).__init__(node, ownerWorkbook)
 
-    def getRelationships(self):
-        """
-        List all relationships
-        """
+    def getRelationships(self) -> list["RelationshipElement"]:
+        """列出全部关系线。"""
         relationships = []
         owner_workbook = self.getOwnerWorkbook()
         for r in self.getChildNodesByTagName(const.TAG_RELATIONSHIP):

@@ -12,44 +12,45 @@ logger = getLogger(__name__)
 
 
 class WorkbookSaver(object):
-    def __init__(self, workbook):
-        """ Save `WorkbookDocument` as XMind file.
+    def __init__(self, workbook) -> None:
+        """将 `WorkbookDocument` 保存为 XMind 文件。
 
-        :param workbook: `WorkbookDocument` object
+        :param workbook: `WorkbookDocument` 对象。
         """
         self._workbook = workbook
         self._temp_dir = utils.temp_dir()
 
-    def _get_content_xml(self):
+    def _get_content_xml(self) -> str:
         content_path = utils.join_path(self._temp_dir, const.CONTENT_XML)
-        # encoding specifies the encoding which is to be used for the file.
+        # encoding 指定写文件时使用的编码。
         with codecs.open(content_path, "w", encoding="utf-8") as f:
             self._workbook.output(f)
 
         return content_path
 
-    def _get_comments_xml(self):
+    def _get_comments_xml(self) -> str:
         comments_path = utils.join_path(self._temp_dir, const.COMMENTS_XML)
         with codecs.open(comments_path, "w", encoding="utf-8") as f:
             self._workbook.commentsbook.output(f)
 
         return comments_path
 
-    def _get_styles_xml(self):
+    def _get_styles_xml(self) -> str:
         styles_path = utils.join_path(self._temp_dir, const.STYLES_XML)
         with codecs.open(styles_path, "w", encoding="utf-8") as f:
             self._workbook.stylesbook.output(f)
 
         return styles_path
 
-    def _get_reference(self, except_revisions=False):
-        """
-        Get all references in xmind zip file.
+    def _get_reference(self, except_revisions: bool = False) -> str:
+        """从原 XMind 压缩包中解出附件引用（除 content/styles/comments 外的全部成员）。
 
-        :param except_revisions: whether or not to save `Revisions` content in order ot save space.
+        :param except_revisions: 是否跳过 `Revisions` 目录下的内容以节省空间。
+        :return: 解压后的临时目录路径。
         """
         original_xmind_file = self._workbook.get_path()
         reference_dir = utils.temp_dir()
+        reference_dir_abs = os.path.abspath(reference_dir)
 
         filename, suffix = utils.split_ext(original_xmind_file)
         if suffix != const.XMIND_EXT:
@@ -65,7 +66,22 @@ class WorkbookSaver(object):
                         continue
                     if const.REVISIONS_DIR in name and except_revisions:
                         continue
-                    target_file = utils.get_abs_path(utils.join_path(reference_dir, name))
+                    # 安全校验：拒绝绝对路径成员名，并确保解压目标始终落在
+                    # reference_dir 内部，防止压缩包用 "../" 之类的成员名逃逸到
+                    # 临时目录之外（zip slip / 路径穿越）。
+                    if os.path.isabs(name):
+                        logger.warning(
+                            "跳过不安全的压缩包成员（绝对路径）：{}，来源：{}", name, original_xmind_file
+                        )
+                        continue
+                    target_file = os.path.abspath(utils.join_path(reference_dir, name))
+                    if target_file != reference_dir_abs and not target_file.startswith(
+                        reference_dir_abs + os.sep
+                    ):
+                        logger.warning(
+                            "跳过不安全的压缩包成员（路径穿越）：{}，来源：{}", name, original_xmind_file
+                        )
+                        continue
                     if not os.path.exists(os.path.dirname(target_file)):
                         os.makedirs(os.path.dirname(target_file))
                     with open(target_file, 'xb') as f:
@@ -75,14 +91,19 @@ class WorkbookSaver(object):
 
         return reference_dir
 
-    def save(self, path=None, only_content=False, except_attachments=False, except_revisions=False):
-        """
-        Save the workbook to the given path. If the path is not given,
-        then will save to the path set in workbook.
-        :param path: save to the target path.
-        :param except_revisions: whether or not to save `Revisions` content to save space.
-        :param except_attachments: only save content.xml、comments.xml、sytles.xml.
-        :param only_content: only save content.xml
+    def save(
+        self,
+        path: str | None = None,
+        only_content: bool = False,
+        except_attachments: bool = False,
+        except_revisions: bool = False,
+    ) -> None:
+        """将工作簿保存为 `.xmind` 文件；不传 `path` 则保存到工作簿自身记录的路径。
+
+        :param path: 保存目标路径。
+        :param except_revisions: 是否跳过 `Revisions` 内容以节省空间。
+        :param except_attachments: 是否只保存 content.xml、comments.xml、styles.xml（不含附件）。
+        :param only_content: 是否只保存 content.xml。
         """
         original_path = self._workbook.get_path()
         new_path = path or original_path
@@ -116,64 +137,3 @@ class WorkbookSaver(object):
                         f.write(utils.join_path(dirpath, filename),
                                 utils.join_path(dirpath[length + 1:] + os.sep, filename))
         f.close()
-
-    # def save(self, path=None):
-    #     """
-    #     Save the workbook to the given path. If the path is not given, then
-    #     will save to the path set in workbook.
-    #     """
-    #     path = path or self._workbook.get_path()
-    #
-    #     if not path:
-    #         raise Exception("Please specify a filename for the XMind file")
-    #
-    #     path = utils.get_abs_path(path)
-    #
-    #     file_name, ext = utils.split_ext(path)
-    #
-    #     if ext != const.XMIND_EXT:
-    #         raise Exception("XMind filename require a '%s' extension" % const.XMIND_EXT)
-    #
-    #     content_xml = self._get_content_xml()
-    #     comments_xml = self._get_comments_xml()
-    #     styles_xml = self._get_styles_xml()
-    #
-    #     f = utils.compress(path)
-    #     f.write(content_xml, const.CONTENT_XML)
-    #     f.write(comments_xml, const.COMMENTS_XML)
-    #     f.write(styles_xml, const.STYLES_XML)
-
-    # def save_as(self, path=None):
-    #     """
-    #     After update a xmind file, save it to the given path with all references in the xmind file except
-    #     Revisions content for saving space. If the path is not given, then will save to the path set in workbook.
-    #     """
-    #     original_path = self._workbook.get_path()
-    #     new_path = path or original_path
-    #     if not new_path:
-    #         raise Exception('Please specify a filename for the XMind file')
-    #
-    #     original_path = utils.get_abs_path(original_path)
-    #     original_filename, original_suffix = utils.split_ext(original_path)
-    #     if original_suffix != const.XMIND_EXT:
-    #         raise Exception('XMind filename require a "%s" extension' % const.XMIND_EXT)
-    #
-    #     new_path = utils.get_abs_path(new_path)
-    #     new_filename, new_suffix = utils.split_ext(new_path)
-    #     if new_suffix != const.XMIND_EXT:
-    #         raise Exception('XMind filename require a "%s" extension' % const.XMIND_EXT)
-    #
-    #     content = self._get_content_xml()
-    #     styles = self._get_styles_xml()
-    #     comments = self._get_comments_xml()
-    #     reference_dir = self._get_reference(original_path)
-    #
-    #     f = utils.compress(new_path)
-    #     f.write(content, const.CONTENT_XML)
-    #     f.write(styles, const.STYLES_XML)
-    #     f.write(comments, const.COMMENTS_XML)
-    #     length = reference_dir.__len__()  # the length of the file string
-    #     for dirpath, dirnames, filenames in os.walk(reference_dir):
-    #         for filename in filenames:
-    #             f.write(utils.join_path(dirpath, filename), utils.join_path(dirpath[length+1:]+os.sep, filename))
-    #     f.close()

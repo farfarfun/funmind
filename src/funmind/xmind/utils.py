@@ -25,11 +25,13 @@ def generate_id() -> str:
 
 
 # ********** Zip **********
-def extract(path):
+def extract(path: str) -> zipfile.ZipFile:
+    """以只读模式打开指定路径的 zip 压缩包。"""
     return zipfile.ZipFile(path, "r")
 
 
-def compress(path):
+def compress(path: str) -> zipfile.ZipFile:
+    """以写模式打开（新建）指定路径的 zip 压缩包。"""
     return zipfile.ZipFile(path, "w")
 
 
@@ -38,13 +40,11 @@ join_path = os.path.join
 split_ext = os.path.splitext
 
 
-def get_abs_path(path):
-    """
-        Return the absolute path of a file
+def get_abs_path(path: str) -> str:
+    """返回文件的绝对路径。
 
-        If path contains a start point (eg Unix '/') then use the specified start point
-        instead of the current working directory. The starting point of the file path is
-        allowed to begin with a tilde "~", which will be replaced with the user's home directory.
+    若 `path` 包含起始点（如 Unix 下的 ``/``），则使用该起始点而非当前工作目录；
+    起始路径允许以 ``~`` 开头，会被替换为用户主目录。
     """
 
     fp, fn = os.path.split(path)
@@ -57,20 +57,13 @@ def get_abs_path(path):
 
 
 # ********** Time **********
-def get_current_time():
-    """
-    Get the current time in milliseconds
-    """
+def get_current_time() -> int:
+    """返回当前时间的毫秒级时间戳。"""
     return int(round(time.time() * 1000))
 
 
-def readable_time(timestamp):
-    """
-    Convert timestamp to human-readable time format
-
-    Timestamp in milliseconds, convert to seconds
-    Cause Python handle time in seconds
-    """
+def readable_time(timestamp: int | str) -> str:
+    """将毫秒级时间戳转换为可读的时间字符串（Python 内部按秒处理时间，故先转换为秒）。"""
     timestampe_in_seconds = float(timestamp) / 1000
     return time.strftime("%m/%d/%Y %H:%M:%S", time.gmtime(timestampe_in_seconds))
 
@@ -81,33 +74,13 @@ parse_dom = parse
 parse_dom_string = parseString
 
 
-# def create_document():
-#     return dom.Document()
-#
-#
-# def create_element(tagName, namespaceURI=None, prefix=None, localName=None):
-#     return dom.Element(tagName, namespaceURI, prefix, localName)
-#
-#
-# def load_XML(stream):
-#     """
-#         Create new Document while occure load XML error
-#     """
-#     try:
-#         return dom.parse(stream)
-#     except:
-#         return create_document()
-
-
 # ********** Decorator **********
 
 def prevent(func):
-    """
-        Decorate func with this to prevent raising an Exception when
-        an error is encountered
+    """装饰 `func`，用于阻止被装饰函数在出错时向外抛出异常。
 
-        目前项目内暂无调用方，仅捕获 `Exception`（而非 `BaseException`），
-        以避免吞掉 `KeyboardInterrupt`/`SystemExit` 等控制流信号。
+    目前项目内暂无调用方，仅捕获 `Exception`（而非 `BaseException`），
+    以避免吞掉 `KeyboardInterrupt`/`SystemExit` 等控制流信号。
     """
 
     @wraps(func)
@@ -117,7 +90,7 @@ def prevent(func):
     return wrapper
 
 
-def add_snake_case_aliases(cls):
+def add_snake_case_aliases(cls: type) -> type:
     """为 cls 上驼峰命名的公开方法批量添加 snake_case 别名（委托原方法）。
 
     本项目二次打包自上游 xmind 库，公开 API 大量沿用 Java/JS 风格的驼峰命名，
@@ -133,13 +106,10 @@ def add_snake_case_aliases(cls):
     return cls
 
 
-def check(attr):
-    def decorator(method):
-        """
-            Decorate method with this to check whether the object
-            has an attribute with the given name.
-        """
+def check(attr: str):
+    """返回一个方法装饰器：调用前检查 `self` 是否具有名为 `attr` 的属性，没有则直接返回 ``None``。"""
 
+    def decorator(method):
         @wraps(method)
         def wrapper(self, *args, **kwargs):
             if hasattr(self, attr):

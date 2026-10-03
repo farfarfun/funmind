@@ -17,8 +17,10 @@ class LabelElement(TopicMixinElement):
         if content is not None:
             self.setTextContent(content)
 
-    def getLabel(self):
+    def getLabel(self) -> str | None:
+        """返回标签文本内容。"""
         return self.getTextContent()
 
-    def setLabel(self, content):
+    def setLabel(self, content: str) -> None:
+        """设置标签文本内容。"""
         self.setTextContent(content)

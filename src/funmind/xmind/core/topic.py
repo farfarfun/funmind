@@ -1,4 +1,5 @@
 import warnings
+from typing import TYPE_CHECKING
 
 from . import const
 from .labels import LabelsElement, LabelElement
@@ -11,8 +12,18 @@ from .position import PositionElement
 from .title import TitleElement
 from .. import utils
 
+if TYPE_CHECKING:
+    # 仅用于类型标注；`sheet.py` 反过来会导入本模块的 `TopicElement`，
+    # 直接在模块顶层导入会造成循环导入，因此放在 TYPE_CHECKING 下。
+    from .sheet import SheetElement
 
-def split_hyperlink(hyperlink):
+
+def split_hyperlink(hyperlink: str) -> tuple[str | None, str]:
+    """将超链接拆分为协议前缀和内容两部分。
+
+    :param hyperlink: 完整的超链接字符串，如 ``file:///tmp/a.txt``。
+    :return: ``(protocol, content)``；协议不存在时 ``protocol`` 为 ``None``。
+    """
     colon = hyperlink.find(":")
     if colon < 0:
         protocol = None
@@ -94,7 +105,8 @@ class TopicElement(WorkbookMixinElement):
     def _get_children(self):
         return self.getFirstChildNodeByTagName(const.TAG_CHILDREN)
 
-    def getOwnerSheet(self):
+    def getOwnerSheet(self) -> "SheetElement | None":
+        """返回当前主题所属的工作表，找不到时返回 ``None``。"""
         parent = self.getParentNode()
 
         while parent and parent.tagName != const.TAG_SHEET:
@@ -111,13 +123,15 @@ class TopicElement(WorkbookMixinElement):
             if parent is sheet.getImplementation():
                 return sheet
 
-    def getTitle(self):
+    def getTitle(self) -> str | None:
+        """返回主题标题文本，未设置时返回 ``None``。"""
         title = self._get_title()
         if title:
             title = TitleElement(title, self.getOwnerWorkbook())
             return title.getTextContent()
 
-    def getMarkers(self):
+    def getMarkers(self) -> list["MarkerRefElement"]:
+        """返回当前主题上的全部标记（marker），没有则返回空列表。"""
         refs = self._get_markerrefs()
         if not refs:
             return []
@@ -167,10 +181,8 @@ class TopicElement(WorkbookMixinElement):
         )
         return self.add_marker(markerId)
 
-    def getLabels(self):
-        """
-        Get lables content. One topic can set one label right now.
-        """
+    def getLabels(self) -> str | None:
+        """返回主题的标签内容；当前每个主题只支持设置一个标签。"""
         _labels = self._get_labels()
         if not _labels:
             return None
@@ -186,7 +198,8 @@ class TopicElement(WorkbookMixinElement):
         content = label.getLabel()
         return content
 
-    def addLabel(self, content):
+    def addLabel(self, content: str) -> LabelElement:
+        """为主题设置标签内容（已存在时覆盖），并返回标签元素。"""
         _labels = self._get_labels()
         if not _labels:
             tmp = LabelsElement(None, self)
@@ -201,43 +214,42 @@ class TopicElement(WorkbookMixinElement):
         tmp.appendChild(label)
         return label
 
-    def getComments(self):
-        """
-        Get comments content.
-        """
+    def getComments(self) -> str | None:
+        """返回当前主题关联的全部批注内容（已按换行拼接），没有则返回 ``None``。"""
         topic_id = self.getAttribute(const.ATTR_ID)
         workbook = self.getOwnerWorkbook()
         content = workbook.commentsbook.getComment(topic_id)
         return content
 
-    def addComment(self, content, author=None):
+    def addComment(self, content: str, author: str | None = None):
+        """为当前主题新增一条批注，返回新建的批注元素。
+
+        :param content: 批注正文内容。
+        :param author: 批注作者，不传则记为 ``admin``。
+        """
         topic_id = self.getAttribute(const.ATTR_ID)
         workbook = self.getOwnerWorkbook()
         comment = workbook.commentsbook.addComment(content=content, topic_id=topic_id, author=author)
         return comment
 
-    def getNotes(self):
-        """
-        Get notes content. One topic can set one note right now.
-        """
+    def getNotes(self) -> str | None:
+        """返回主题的纯文本备注内容；当前每个主题只支持设置一条备注。"""
         _notes = self._get_notes()
         if not _notes:
             return None
         tmp = NotesElement(_notes, self)
-        # Only support plain text notes right now
+        # 目前只支持纯文本格式的备注。
         content = tmp.getContent(const.PLAIN_FORMAT_NOTE)
         return content
 
-    def setFolded(self):
+    def setFolded(self) -> None:
+        """将主题标记为折叠分支。"""
         self.setAttribute(const.ATTR_BRANCH, const.VAL_FOLDED)
 
         # self.updateModifiedTime()
 
-    def getPosition(self):
-        """ Get a pair of integer located topic position.
-
-        return (x, y) indicate x and y
-        """
+    def getPosition(self) -> tuple[int, int] | None:
+        """返回主题的自由定位坐标 ``(x, y)``；未设置坐标时返回 ``None``。"""
         position = self._get_position()
         if position is None:
             return
@@ -255,7 +267,8 @@ class TopicElement(WorkbookMixinElement):
 
         return int(x), int(y)
 
-    def setPosition(self, x, y):
+    def setPosition(self, x: int, y: int) -> "TopicElement":
+        """设置主题的自由定位坐标，并返回当前主题。"""
         owner_workbook = self.getOwnerWorkbook()
         position = self._get_position()
 
@@ -270,17 +283,15 @@ class TopicElement(WorkbookMixinElement):
         return self
         # self.updateModifiedTime()
 
-    def removePosition(self):
+    def removePosition(self) -> None:
+        """移除主题的自由定位坐标。"""
         position = self._get_position()
         if position is not None:
             self.getImplementation().removeChild(position)
         # self.updateModifiedTime()
 
-    def getType(self):
-        """
-        1、root
-        2、attached、detached
-        """
+    def getType(self) -> str | None:
+        """返回主题类型：根主题为 ``root``，子主题为 ``attached`` 或 ``detached``。"""
         parent = self.getParentNode()
         if not parent:
             return
@@ -292,7 +303,8 @@ class TopicElement(WorkbookMixinElement):
             topics = TopicsElement(parent, self.getOwnerWorkbook())
             return topics.getType()
 
-    def getTopics(self, topics_type=const.TOPIC_ATTACHED):
+    def getTopics(self, topics_type: str = const.TOPIC_ATTACHED) -> "TopicsElement | None":
+        """返回指定类型（附加/分离）的子主题容器，不存在时返回 ``None``。"""
         topic_children = self._get_children()
 
         if topic_children:
@@ -300,18 +312,16 @@ class TopicElement(WorkbookMixinElement):
 
             return topic_children.getTopics(topics_type)
 
-    def getSubTopics(self, topics_type=const.TOPIC_ATTACHED):
-        """ List all sub topics under current topic, If not sub topics, return empty list.
-        """
+    def getSubTopics(self, topics_type: str = const.TOPIC_ATTACHED) -> list["TopicElement"]:
+        """列出当前主题下所有子主题，没有则返回空列表。"""
         topics = self.getTopics(topics_type)
         if not topics:
             return []
 
         return topics.getSubTopics()
 
-    def getSubTopicByIndex(self, index, topics_type=const.TOPIC_ATTACHED):
-        """ Get sub topic by speicifeid index
-        """
+    def getSubTopicByIndex(self, index: int, topics_type: str = const.TOPIC_ATTACHED):
+        """按索引获取指定子主题；索引越界时返回完整子主题列表。"""
         sub_topics = self.getSubTopics(topics_type)
         if sub_topics is None:
             return
@@ -321,17 +331,18 @@ class TopicElement(WorkbookMixinElement):
 
         return sub_topics[index]
 
-    def addSubTopic(self, topic=None, index=-1, topics_type=const.TOPIC_ATTACHED):
-        """
-        Add a sub topic to the current topic and return added sub topic
+    def addSubTopic(
+        self,
+        topic: "TopicElement | None" = None,
+        index: int = -1,
+        topics_type: str = const.TOPIC_ATTACHED,
+    ) -> "TopicElement":
+        """为当前主题添加一个子主题，并返回新增的子主题。
 
-        :param topic:   `TopicElement` object. If not `TopicElement` object
-                        passed then created new one automatically.
-        :param index:   if index not given then passed topic will append to
-                        sub topics list. Otherwise, index must be less than
-                        length of sub topics list and insert passed topic
-                        before given index.
-        :param topics_type:   TOPIC_ATTACHED or TOPIC_DETACHED
+        :param topic: 待添加的 `TopicElement` 对象；不传则自动新建一个。
+        :param index: 插入位置索引；不传或越界则追加到子主题列表末尾，
+            否则插入到该索引对应子主题之前。
+        :param topics_type: 子主题类型，`TOPIC_ATTACHED`（附加）或 `TOPIC_DETACHED`（分离）。
         """
         owner_workbook = self.getOwnerWorkbook()
         topic = topic or self.__class__(None, owner_workbook)
@@ -360,7 +371,8 @@ class TopicElement(WorkbookMixinElement):
 
         return topic
 
-    def getIndex(self):
+    def getIndex(self) -> int:
+        """返回当前主题在同级子主题列表中的索引；不是子主题（无父 `topics` 节点）时返回 -1。"""
         parent = self.getParentNode()
         if parent and parent.tagName == const.TAG_TOPICS:
             index = 0
@@ -370,14 +382,14 @@ class TopicElement(WorkbookMixinElement):
                 index += 1
         return -1
 
-    def getHyperlink(self):
+    def getHyperlink(self) -> str | None:
+        """返回主题的超链接地址，未设置时返回 ``None``。"""
         return self.getAttribute(const.ATTR_HREF)
 
-    def setFileHyperlink(self, path):
-        """ Set file as topic hyperlink
+    def setFileHyperlink(self, path: str) -> None:
+        """将主题超链接设置为本地文件。
 
-        :param path: path of specified file
-
+        :param path: 目标文件路径。
         """
         protocol, content = split_hyperlink(path)
         if not protocol:
@@ -385,11 +397,10 @@ class TopicElement(WorkbookMixinElement):
 
         self._set_hyperlink(path)
 
-    def setTopicHyperlink(self, tid):
-        """ Set topic as topic hyperlink
+    def setTopicHyperlink(self, tid: str) -> None:
+        """将主题超链接设置为指向另一个主题。
 
-        :param tid: given topic's id
-
+        :param tid: 目标主题的 id。
         """
         protocol, content = split_hyperlink(tid)
         if not protocol:
@@ -399,11 +410,10 @@ class TopicElement(WorkbookMixinElement):
             tid = const.TOPIC_PROTOCOL + tid
         self._set_hyperlink(tid)
 
-    def setURLHyperlink(self, url):
-        """ Set URL as topic hyperlink
+    def setURLHyperlink(self, url: str) -> None:
+        """将主题超链接设置为指定网址。
 
-        :param url: HTTP URL to specified website
-
+        :param url: 目标 HTTP(S) 网址。
         """
         protocol, content = split_hyperlink(url)
         if not protocol:
@@ -411,32 +421,28 @@ class TopicElement(WorkbookMixinElement):
 
         self._set_hyperlink(url)
 
-    def getStructureClass(self):
-        self.getAttribute(const.ATTR_STRUCTURE_CLASS)
+    def getStructureClass(self) -> str | None:
+        """返回主题的结构样式类名（如未设置返回 ``None``）。"""
+        return self.getAttribute(const.ATTR_STRUCTURE_CLASS)
 
-    def setStructureClass(self, structure_class):
-        """ Set topic's structure class attribute
+    def setStructureClass(self, structure_class: str) -> None:
+        """设置主题的结构样式类名。
 
-        :param structure_class: such as structure-class="org.xmind.ui.map.floating"
-
+        :param structure_class: 结构类名，如 ``structure-class="org.xmind.ui.map.floating"``。
         """
         self.setAttribute(const.ATTR_STRUCTURE_CLASS, structure_class)
 
-    def getStyleId(self):
-        """ Get topic's style id
-
-        :return: such as <topic id="4i367dju3smik6p5tl7le3mb6d" style-id="4sfj39toumgj9tupqn113ck9kq">
-        """
+    def getStyleId(self) -> str | None:
+        """返回主题关联的样式 id（如未设置返回 ``None``）。"""
         return self.getAttribute(const.ATTR_STYLE_ID)
 
-    def setStyleID(self):
+    def setStyleID(self) -> None:
+        """为主题生成并设置一个新的随机样式 id。"""
         style_id = utils.generate_id()
         self.setAttribute(const.ATTR_STYLE_ID, style_id)
 
-    def getData(self):
-        """ Get topic's main content in the form of a dictionary.
-            if subtopic exist, recursively get the subtopics content.
-        """
+    def getData(self) -> dict:
+        """以字典形式返回主题的全部内容；若存在子主题则递归展开。"""
         data = {
             'id': self.getAttribute(const.ATTR_ID),
             'link': self.getAttribute(const.ATTR_HREF),
@@ -464,7 +470,8 @@ class ChildrenElement(WorkbookMixinElement):
     def __init__(self, node=None, ownerWorkbook=None):
         super(ChildrenElement, self).__init__(node, ownerWorkbook)
 
-    def getTopics(self, topics_type):
+    def getTopics(self, topics_type: str) -> "TopicsElement | None":
+        """返回指定类型的子主题容器，不存在时返回 ``None``。"""
         topics = self.iterChildNodesByTagName(const.TAG_TOPICS)
         for i in topics:
             t = TopicsElement(i, self.getOwnerWorkbook())
@@ -478,13 +485,12 @@ class TopicsElement(WorkbookMixinElement):
     def __init__(self, node=None, ownerWorkbook=None):
         super(TopicsElement, self).__init__(node, ownerWorkbook)
 
-    def getType(self):
+    def getType(self) -> str | None:
+        """返回子主题容器的类型（`TOPIC_ATTACHED` 或 `TOPIC_DETACHED`）。"""
         return self.getAttribute(const.ATTR_TYPE)
 
-    def getSubTopics(self):
-        """
-        List all sub topics on the current topic
-        """
+    def getSubTopics(self) -> list["TopicElement"]:
+        """列出当前容器下的全部子主题。"""
         topics = []
         ownerWorkbook = self.getOwnerWorkbook()
         for t in self.getChildNodesByTagName(const.TAG_TOPIC):
@@ -492,10 +498,8 @@ class TopicsElement(WorkbookMixinElement):
 
         return topics
 
-    def getSubTopicByIndex(self, index):
-        """
-        Get specified sub topic by index
-        """
+    def getSubTopicByIndex(self, index: int):
+        """按索引获取指定子主题；索引越界时返回完整子主题列表。"""
         sub_topics = self.getSubTopics()
         if index < 0 or index >= len(sub_topics):
             return sub_topics

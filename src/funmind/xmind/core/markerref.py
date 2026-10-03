@@ -3,22 +3,25 @@ from .mixin import WorkbookMixinElement
 
 
 class MarkerId:
-    def __init__(self, name):
+    """标记（marker）标识，如 ``star-red``、``priority-1``。"""
+
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<MarkerId: %s>" % self
 
-    def __eq__(self, other):
-        """Override the default Equals behavior"""
+    def __eq__(self, other: object) -> bool:
+        """覆盖默认的相等性判断：按 `name` 比较。"""
         if isinstance(other, self.__class__):
             return self.name == other.name
         return False
 
-    def getFamily(self):
+    def getFamily(self) -> str:
+        """返回标记所属的分类前缀（如 ``star``、``priority``）。"""
         return self.name.split('-')[0]
 
 
@@ -144,8 +147,10 @@ class MarkerRefElement(WorkbookMixinElement):
     def __init__(self, node=None, ownerWorkbook=None):
         super(MarkerRefElement, self).__init__(node, ownerWorkbook)
 
-    def getMarkerId(self):
+    def getMarkerId(self) -> MarkerId:
+        """返回当前标记引用对应的 `MarkerId`。"""
         return MarkerId(self.getAttribute(const.ATTR_MARKERID))
 
-    def setMarkerId(self, val):
+    def setMarkerId(self, val: "MarkerId | str") -> None:
+        """设置标记引用的 marker id。"""
         self.setAttribute(const.ATTR_MARKERID, str(val))

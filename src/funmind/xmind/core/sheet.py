@@ -17,8 +17,8 @@ class SheetElement(WorkbookMixinElement):
         self.setAttribute(const.ATTR_TIMESTAMP, int(utils.get_current_time()))
         self._root_topic = self._get_root_topic()
 
-    def _get_root_topic(self):
-        # This method initialize root topic, if not root topic DOM implementation, then create one
+    def _get_root_topic(self) -> TopicElement:
+        # 初始化根主题：若 DOM 中尚无根主题节点则新建一个。
         topics = self.getChildNodesByTagName(const.TAG_TOPIC)
         owner_workbook = self.getOwnerWorkbook()
         if len(topics) >= 1:
@@ -33,10 +33,8 @@ class SheetElement(WorkbookMixinElement):
     def _getRelationships(self):
         return self.getFirstChildNodeByTagName(const.TAG_RELATIONSHIPS)
 
-    def _addRelationship(self, rel):
-        """
-        Add relationship to sheet
-        """
+    def _addRelationship(self, rel: RelationshipElement) -> None:
+        """将关系线添加到工作表。"""
         _rels = self._getRelationships()
         owner_workbook = self.getOwnerWorkbook()
 
@@ -47,7 +45,8 @@ class SheetElement(WorkbookMixinElement):
 
         rels.appendChild(rel)
 
-    def updateModifiedTime(self):
+    def updateModifiedTime(self) -> "SheetElement":
+        """更新工作表（及其所属工作簿）的最后修改时间，并返回当前工作表。"""
         super(SheetElement, self).updateModifiedTime()
 
         workbook = self.getParent()
@@ -56,7 +55,8 @@ class SheetElement(WorkbookMixinElement):
 
         return self
 
-    def setTitle(self, text):
+    def setTitle(self, text: str) -> "SheetElement":
+        """设置工作表标题并返回当前工作表。"""
         _title = self._get_title()
         title = TitleElement(_title, self.getOwnerWorkbook())
         title.setTextContent(text)
@@ -66,18 +66,15 @@ class SheetElement(WorkbookMixinElement):
 
         return self.updateModifiedTime()
 
-    def createRelationship(self, end1, end2, title=None):
-        """
-        Create a relationship between two different topics and return the
-        created rel. Please notice that the created rel will be added to
-        sheet.
+    def createRelationship(
+        self, end1: "TopicElement | str", end2: "TopicElement | str", title: str | None = None
+    ) -> RelationshipElement:
+        """在两个主题之间创建关系线，新建的关系线会自动添加到当前工作表。
 
-        :param end1:    topic or topic ID
-        :param end2:    topic or topic ID
-        :param title:   relationship title, default by None
-
-        :return: a `RelationshipElement` instance
-
+        :param end1: 起点主题对象或其 id。
+        :param end2: 终点主题对象或其 id。
+        :param title: 关系线标题，默认为空。
+        :return: 新建的 `RelationshipElement` 实例。
         """
         rel = RelationshipElement(ownerWorkbook=self.getOwnerWorkbook())
         rel.setEnd1ID(end1 if isinstance(end1, str) else end1.getID())
@@ -90,20 +87,16 @@ class SheetElement(WorkbookMixinElement):
 
         return rel
 
-    def getRelationships(self):
-        """
-        Get list of relationship from current sheet
-        """
+    def getRelationships(self) -> list[RelationshipElement]:
+        """返回当前工作表下的全部关系线，没有则返回空列表。"""
         _rels = self._getRelationships()
         if not _rels:
             return []
         owner_workbook = self.getOwnerWorkbook()
         return RelationshipsElement(_rels, owner_workbook).getRelationships()
 
-    def removeRelationship(self, rel):
-        """
-        Remove a relationship between two different topics
-        """
+    def removeRelationship(self, rel: RelationshipElement) -> None:
+        """从工作表中移除一条关系线。"""
         rels = self._getRelationships()
 
         if not rels:
@@ -116,20 +109,23 @@ class SheetElement(WorkbookMixinElement):
 
         self.updateModifiedTime()
 
-    def getRootTopic(self):
+    def getRootTopic(self) -> TopicElement:
+        """返回工作表的根主题。"""
         return self._root_topic
 
     def _get_title(self):
         return self.getFirstChildNodeByTagName(const.TAG_TITLE)
 
     # FIXME: convert to getter/setter
-    def getTitle(self):
+    def getTitle(self) -> str | None:
+        """返回工作表标题文本，未设置时返回 ``None``。"""
         title = self._get_title()
         if title:
             title = TitleElement(title, self.getOwnerWorkbook())
             return title.getTextContent()
 
     def getParent(self):
+        """返回工作表所属的 `WorkbookDocument`，不属于任何工作簿时返回 ``None``。"""
         workbook = self.getOwnerWorkbook()
         if workbook:
             parent = self.getParentNode()
@@ -137,10 +133,8 @@ class SheetElement(WorkbookMixinElement):
             if parent == workbook.getWorkbookElement().getImplementation():
                 return workbook
 
-    def getData(self):
-        """
-        Get sheet's main content in the form of a dictionary.
-        """
+    def getData(self) -> dict:
+        """以字典形式返回工作表的主要内容（含根主题的递归数据）。"""
         root_topic = self.getRootTopic()
         data = {
             'id': self.getAttribute(const.ATTR_ID),

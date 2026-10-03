@@ -8,10 +8,11 @@ class NotesElement(TopicMixinElement):
     def __init__(self, node=None, ownerTopic=None):
         super(NotesElement, self).__init__(node, ownerTopic)
 
-    def getContent(self, format=const.PLAIN_FORMAT_NOTE):
-        """ Get notes content
+    def getContent(self, format: str = const.PLAIN_FORMAT_NOTE) -> str | None:
+        """返回指定格式的备注内容，默认返回纯文本备注。
 
-        :parma format:  specified returned content format, plain text by default.
+        :param format: 备注格式，目前仅支持 `const.PLAIN_FORMAT_NOTE`（纯文本）。
+        :raises NotImplementedError: 传入纯文本以外的格式时抛出。
         """
 
         _note = self.getFirstChildNodeByTagName(format)
@@ -31,25 +32,26 @@ class _NoteContentElement(TopicMixinElement):
     def __init__(self, node=None, ownerTopic=None):
         super(_NoteContentElement, self).__init__(node, ownerTopic)
 
-    def getFormat(self):
+    def getFormat(self) -> str:
+        """返回备注内容节点的标签名（即备注格式）。"""
         return self.getImplementation().tagName
 
 
 class PlainNotes(_NoteContentElement):
-    """ Plain text notes
+    """纯文本备注。
 
-    :param content: utf8 plain text.
-    :param node:    `xml.dom.Element` object`
-    :param ownerTopic:  `xmind.core.topic.TopicElement` object
-
+    :param content: UTF-8 纯文本内容。
+    :param node: `xml.dom.Element` 对象。
+    :param ownerTopic: 所属的 `funmind.xmind.core.topic.TopicElement` 对象。
     """
 
     TAG_NAME = const.PLAIN_FORMAT_NOTE
 
-    def __init__(self, content=None, node=None, ownerTopic=None):
+    def __init__(self, content: str | None = None, node=None, ownerTopic=None) -> None:
         super(PlainNotes, self).__init__(node, ownerTopic)
         if content is not None:
             self.setTextContent(content)
 
-    def setContent(self, content):
+    def setContent(self, content: str) -> None:
+        """设置纯文本备注内容。"""
         self.setTextContent(content)

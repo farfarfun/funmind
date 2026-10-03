@@ -1,7 +1,7 @@
 [project]
 name = "funmind"
 version = "0.0.3"
-description = "funmind"
+description = "XMind 思维导图文件读写库：以 XML 方式解析与生成 .xmind 工作簿，支持画布、主题树、标记、批注与样式操作"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

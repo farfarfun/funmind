@@ -4,6 +4,7 @@ import warnings
 from . import Document
 from . import const
 from .mixin import WorkbookMixinElement
+from .relationship import RelationshipElement
 from .sheet import SheetElement
 from .topic import TopicElement
 from .. import utils
@@ -11,36 +12,39 @@ from ..exceptions import WorkbookError
 
 
 class WorkbookElement(WorkbookMixinElement):
-    """`WorkbookElement` as the one and only root element of the document correspond XMind root topic.
+    """`WorkbookElement` 是文档中唯一的根元素，对应 XMind 内容文件的根节点。
     """
     TAG_NAME = const.TAG_WORKBOOK
 
     def __init__(self, node=None, ownerWorkbook=None):
         super(WorkbookElement, self).__init__(node, ownerWorkbook)
 
-        # Initialize WorkbookElement with default attribute
+        # 初始化默认命名空间属性。
         namespace = (const.NAMESPACE, const.XMLNS_CONTENT)
         attrs = [const.NS_FO, const.NS_XHTML, const.NS_XLINK, const.NS_SVG]
 
         for attr in attrs:
             self.setAttributeNS(namespace, attr)
 
-        # Initialize WorkbookElement need contains at least one SheetElement
+        # 工作簿至少需要包含一个工作表。
         if not self.getSheets():
             sheet = self.createSheet()
             self.addSheet(sheet)
 
     def setOwnerWorkbook(self, workbook):
+        """`WorkbookElement` 只能归属一个 `WorkbookDocument`，禁止重新赋值。"""
         raise WorkbookError("WorkbookDocument allowed only contains one WorkbookElement")
 
-    def getSheets(self):
+    def getSheets(self) -> list[SheetElement]:
+        """返回工作簿下的全部工作表。"""
         sheets = self.getChildNodesByTagName(const.TAG_SHEET)
         owner_workbook = self.getOwnerWorkbook()
         sheets = [SheetElement(sheet, owner_workbook) for sheet in sheets]
 
         return sheets
 
-    def getSheetByIndex(self, index):
+    def getSheetByIndex(self, index: int) -> SheetElement | None:
+        """按索引获取工作表，索引越界时返回 ``None``。"""
         sheets = self.getSheets()
 
         if index < 0 or index >= len(sheets):
@@ -48,11 +52,13 @@ class WorkbookElement(WorkbookMixinElement):
 
         return sheets[index]
 
-    def createSheet(self):
+    def createSheet(self) -> SheetElement:
+        """创建一个新的工作表（尚未添加到工作簿）。"""
         sheet = SheetElement(None, self.getOwnerWorkbook())
         return sheet
 
-    def addSheet(self, sheet, index=-1):
+    def addSheet(self, sheet: SheetElement, index: int = -1) -> None:
+        """将工作表添加到工作簿；索引越界时追加到末尾，否则插入到该索引之前。"""
         sheets = self.getSheets()
         if index < 0 or index >= len(sheets):
             self.appendChild(sheet)
@@ -61,7 +67,8 @@ class WorkbookElement(WorkbookMixinElement):
 
         self.updateModifiedTime()
 
-    def removeSheet(self, sheet):
+    def removeSheet(self, sheet: SheetElement) -> None:
+        """从工作簿中移除工作表；工作簿至少需保留一个工作表，不足时不会移除。"""
         sheets = self.getSheets()
         if len(sheets) <= 1:
             return
@@ -70,7 +77,8 @@ class WorkbookElement(WorkbookMixinElement):
             self.removeChild(sheet)
             self.updateModifiedTime()
 
-    def moveSheet(self, original_index, target_index):
+    def moveSheet(self, original_index: int, target_index: int) -> None:
+        """将工作表从原索引移动到目标索引。"""
         if original_index < 0 or original_index == target_index:
             return
 
@@ -95,7 +103,8 @@ class WorkbookElement(WorkbookMixinElement):
 
         self.updateModifiedTime()
 
-    def getVersion(self):
+    def getVersion(self) -> str | None:
+        """返回工作簿格式版本号。"""
         return self.getAttribute(const.ATTR_VERSION)
 
 
@@ -103,23 +112,22 @@ utils.add_snake_case_aliases(WorkbookElement)
 
 
 class WorkbookDocument(Document):
-    """ `WorkbookDocument` as central object correspond XMind workbook.
+    """`WorkbookDocument` 是对应 XMind 工作簿的核心对象。
     """
 
-    def __init__(self, node=None, path=None, stylesbook=None, commentsbook=None):
-        """Construct new `WorkbookDocument` object
+    def __init__(self, node=None, path: str | None = None, stylesbook=None, commentsbook=None) -> None:
+        """构造新的 `WorkbookDocument` 对象。
 
-        :param node: pass DOM node object and parse as `WorkbookDocument` object.
-                     if node not given then created new one.
-        :param path: set workbook will to be placed.
-        :param stylesbook: an instance which implements encapsulation of the XMind styles.xml.
-        :param commentsbook: an instance which implements encapsulation of the XMind comments.xml.
+        :param node: 传入 DOM 节点并解析为 `WorkbookDocument`；不传则新建一个空工作簿。
+        :param path: 工作簿的保存路径。
+        :param stylesbook: 封装 XMind styles.xml 的 `StylesBookDocument` 实例。
+        :param commentsbook: 封装 XMind comments.xml 的 `CommentsBookDocument` 实例。
         """
         super(WorkbookDocument, self).__init__(node)
         self._path = path
         self.stylesbook = stylesbook
         self.commentsbook = commentsbook
-        # Initialize WorkbookDocument to make sure that contains WorkbookElement as root.
+        # 确保工作簿内有且仅有一个 WorkbookElement 作为根节点。
         _workbook_element = self.getFirstChildNodeByTagName(const.TAG_WORKBOOK)
 
         self._workbook_element = WorkbookElement(_workbook_element, self)
@@ -129,18 +137,20 @@ class WorkbookDocument(Document):
 
         self.setVersion(const.VERSION)
 
-    def getWorkbookElement(self):
+    def getWorkbookElement(self) -> WorkbookElement:
+        """返回工作簿对应的根元素 `WorkbookElement`。"""
         return self._workbook_element
 
-    def createRelationship(self, topic1, topic2, title=None):
-        """
-        Create relationship with two topics(on the same sheet) and return a `RelationshipElement` instance
+    def createRelationship(
+        self, topic1: TopicElement, topic2: TopicElement, title: str | None = None
+    ) -> RelationshipElement:
+        """在同一工作表下的两个主题之间创建关系线。
 
-        :param topic1: first topic
-        :param topic2: second topic
-        :param title: relationship title, default by None
-        :return: a `RelationshipElement` instance
-
+        :param topic1: 起点主题。
+        :param topic2: 终点主题。
+        :param title: 关系线标题，默认为空。
+        :return: 新建的 `RelationshipElement` 实例。
+        :raises WorkbookError: 当两个主题不属于同一工作表时抛出。
         """
         sheet1 = topic1.getOwnerSheet()
         sheet2 = topic2.getOwnerSheet()
@@ -151,11 +161,8 @@ class WorkbookDocument(Document):
         else:
             raise WorkbookError("Topics not on the same sheet!")
 
-    def createTopic(self):
-        """
-        Create new `TopicElement` object and return. Please notice that
-        this topic will not be added to the workbook.
-        """
+    def createTopic(self) -> TopicElement:
+        """创建一个新的 `TopicElement` 对象；该主题不会自动添加到工作簿中。"""
         return TopicElement(None, self)
 
     def getSheets(self) -> list[SheetElement]:
@@ -175,75 +182,68 @@ class WorkbookDocument(Document):
         )
         return self.get_primary_sheet()
 
-    def createSheet(self, index=-1):
-        """
-        Create new sheet. But please notice the new created sheet has
-        been added to the workbook. Invoke :method addSheet: to do that.
+    def createSheet(self, index: int = -1) -> SheetElement:
+        """创建一个新工作表，并直接添加到工作簿中（无需再调用 `addSheet`）。
 
-        :param index: insert sheet before another sheet that given by
-                        index. If index not given, append sheet to the
-                        sheets list.
-
-        :return: a `SheetElement` instance
-
+        :param index: 插入位置索引；不传或越界则追加到末尾。
+        :return: 新建的 `SheetElement` 实例。
         """
         sheet = self._workbook_element.createSheet()
         self._workbook_element.addSheet(sheet, index)
         return sheet
 
-    def removeSheet(self, sheet):
-        """
-        Remove a sheet from the workbook
+    def removeSheet(self, sheet: SheetElement) -> None:
+        """从工作簿中移除指定工作表。
 
-        :param sheet:   remove passed `SheetElement` object
+        :param sheet: 待移除的 `SheetElement` 对象。
         """
         self._workbook_element.removeSheet(sheet)
 
-    def moveSheet(self, original_index, target_index):
-        """
-        Move a sheet from the original index to the target index
+    def moveSheet(self, original_index: int, target_index: int) -> None:
+        """将工作表从原索引移动到目标索引。
 
-        :param original_index:  index of the sheet will be moved.
-                                `original_index` must be positive integer and
-                                less than `target_index`.
-        :param target_index:    index that sheet want to move to.
-                                `target_index` must be positive integer and
-                                less than the length of sheets list.
+        :param original_index: 待移动工作表的当前索引，须为合法的非负索引。
+        :param target_index: 目标索引，须为合法的非负索引。
         """
         self._workbook_element.moveSheet(original_index, target_index)
 
-    def getVersion(self):
+    def getVersion(self) -> str | None:
+        """返回工作簿格式版本号。"""
         return self._workbook_element.getVersion()
 
-    def getModifiedTime(self):
+    def getModifiedTime(self) -> str | None:
+        """返回工作簿最后修改时间的可读字符串，未设置时返回 ``None``。"""
         return self._workbook_element.getModifiedTime()
 
-    def updateModifiedTime(self):
+    def updateModifiedTime(self) -> WorkbookElement:
+        """将工作簿最后修改时间刷新为当前时间。"""
         return self._workbook_element.updateModifiedTime()
 
-    def setModifiedTime(self):
-        return self._workbook_element.setModifiedTime()
+    def setModifiedTime(self, time: int | None = None) -> None:
+        """设置工作簿的最后修改时间戳。
 
-    def get_path(self):
+        :param time: 毫秒级时间戳；不传则使用当前时间。
+        """
+        return self._workbook_element.setModifiedTime(time or utils.get_current_time())
+
+    def get_path(self) -> str | None:
+        """返回工作簿当前记录的绝对路径，未设置路径时返回 ``None``。"""
         if self._path:
             return utils.get_abs_path(self._path)
 
-    def set_path(self, path):
+    def set_path(self, path: str) -> None:
+        """设置工作簿的保存路径（内部会转换为绝对路径）。"""
         self._path = utils.get_abs_path(path)
 
-    def getData(self):
-        """
-        Get workbook's content in the form of a dictionary.
-        """
+    def getData(self) -> list[dict]:
+        """以列表形式返回工作簿下所有工作表的数据。"""
         data = []
         for sheet in self.getSheets():
             data.append(sheet.getData())
         return data
 
-    def to_prettify_json(self):
-        """
-        Convert the contents of the workbook to a json format
-        """
+    def to_prettify_json(self) -> str:
+        """将工作簿内容转换为格式化的 JSON 字符串。"""
         return json.dumps(self.getData(), indent=4, separators=(',', ': '), ensure_ascii=False)
 
 

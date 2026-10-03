@@ -6,11 +6,19 @@ XMind 思维导图文件（`.xmind`）读写 SDK：基于 [zhuifengshen/xmind](h
 
 ## 安装
 
-尚未发布到 PyPI，可克隆本仓库后本地安装：
+尚未发布到 PyPI，可克隆本仓库后用 [uv](https://docs.astral.sh/uv/) 本地安装：
 
 ```bash
 git clone https://github.com/farfarfun/funmind.git
 cd funmind
+uv sync          # 安装依赖（含开发依赖）到本地虚拟环境
+uv run pytest    # 运行测试
+uv build         # 构建 wheel / sdist
+```
+
+也可以不使用 `uv`，直接用 pip 安装：
+
+```bash
 pip install .
 ```
 

@@ -10,14 +10,18 @@ class PositionElement(WorkbookMixinElement):
 
     # FIXME: These should be converted to getter/setters
 
-    def getX(self):
+    def getX(self) -> str | None:
+        """返回主题自由定位的 X 坐标（字符串形式）。"""
         return self.getAttribute(const.ATTR_X)
 
-    def getY(self):
+    def getY(self) -> str | None:
+        """返回主题自由定位的 Y 坐标（字符串形式）。"""
         return self.getAttribute(const.ATTR_Y)
 
-    def setX(self, x):
+    def setX(self, x: int) -> None:
+        """设置主题自由定位的 X 坐标。"""
         self.setAttribute(const.ATTR_X, int(x))
 
-    def setY(self, y):
+    def setY(self, y: int) -> None:
+        """设置主题自由定位的 Y 坐标。"""
         self.setAttribute(const.ATTR_Y, int(y))

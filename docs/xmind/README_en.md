@@ -1,3 +1,8 @@
+> **说明**：本文件是上游项目 [zhuifengshen/xmind](https://github.com/zhuifengshen/xmind) 的原始
+> README，仅作为版权与历史出处存档保留，其中的安装/用法说明（`pip3 install xmind`、
+> `import xmind` 等）针对的是**上游包**，不适用于本仓库 `funmind`。
+> `funmind` 的安装与用法请参见仓库根目录的 [README.md](../../README.md)。
+
 # XMind
 
 **XMind** is a a one-stop solution for creating, parsing, and updating XMind files. 
