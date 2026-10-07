@@ -3,6 +3,7 @@ from .mixin import TopicMixinElement
 
 
 class NotesElement(TopicMixinElement):
+    """表示主题备注的容器元素。"""
     TAG_NAME = const.TAG_NOTES
 
     def __init__(self, node=None, ownerTopic=None):

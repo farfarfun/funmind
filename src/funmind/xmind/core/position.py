@@ -3,6 +3,7 @@ from .mixin import WorkbookMixinElement
 
 
 class PositionElement(WorkbookMixinElement):
+    """表示主题在画布上的位置 XML 元素。"""
     TAG_NAME = const.TAG_POSITION
 
     def __init__(self, node=None, ownerWorkbook=None):

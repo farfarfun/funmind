@@ -12,6 +12,11 @@ logger = getLogger(__name__)
 
 
 class WorkbookSaver(object):
+    """将 `WorkbookDocument` 写入 `.xmind` 压缩包的保存器。
+
+    构造时接收待保存的工作簿；保存时会保留有效的引用文件，并拒绝不安全的
+    压缩包成员路径。
+    """
     def __init__(self, workbook) -> None:
         """将 `WorkbookDocument` 保存为 XMind 文件。
 

@@ -135,6 +135,7 @@ MarkerId.weekSat = 'week-sat'
 
 
 class MarkerRefsElement(WorkbookMixinElement):
+    """表示主题关联的标记引用集合。"""
     TAG_NAME = const.TAG_MARKERREFS
 
     def __init__(self, node=None, ownerWorkbook=None):
@@ -142,6 +143,7 @@ class MarkerRefsElement(WorkbookMixinElement):
 
 
 class MarkerRefElement(WorkbookMixinElement):
+    """表示主题关联的单个标记引用。"""
     TAG_NAME = const.TAG_MARKERREF
 
     def __init__(self, node=None, ownerWorkbook=None):

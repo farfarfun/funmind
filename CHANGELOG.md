@@ -1,11 +1,13 @@
 # Changelog
 
-## Unreleased
+## [0.0.3] - 2026-10-07
 
 ### 新增
 
 - 补充真实单元测试（加载/保存/异常路径/snake_case 别名），替代此前的纯 import 冒烟测试。
 - 为历史驼峰方法提供 snake_case 公开入口，兼容 SPEC.md 命名规范要求。
+- 为公开类补充中文用途说明；历史驼峰方法现统一发出 `DeprecationWarning`，请迁移到对应的
+  snake_case 接口，旧接口将于 1.0 移除。
 - 为核心异常路径引入 `InvalidXMindFileError`/`WorkbookError` 等领域异常，替代裸 `Exception`。
 - 为 `src/funmind/xmind/` 全部核心模块（`core/__init__.py`、`mixin.py`、`topic.py`、`sheet.py`、
   `workbook.py`、`comments.py`、`notes.py`、`labels.py`、`markerref.py`、`position.py`、

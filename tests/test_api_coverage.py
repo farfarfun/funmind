@@ -1,5 +1,6 @@
 """补充公开 API 的正常路径/边界测试：批注、备注、标签、关系线、超链接、附件、路径安全。"""
 import os
+import warnings
 import zipfile
 
 import pytest
@@ -30,6 +31,19 @@ def test_comment_add_and_get(tmp_path):
     comments = workbook.commentsbook.getComments()
     assert comments[0].getAuthor() == "alice"
     assert comments[1].getAuthor() == "admin"
+
+
+def test_camel_case_api_warns_and_snake_case_api_does_not(tmp_path):
+    """兼容接口：旧驼峰入口告警，snake_case 入口保持为正式 API。"""
+    _, sheet, _ = _new_workbook_with_root(tmp_path)
+
+    with pytest.deprecated_call(match="setTitle 已弃用"):
+        sheet.setTitle("legacy")
+
+    with warnings.catch_warnings(record=True) as recorded:
+        warnings.simplefilter("always")
+        sheet.set_title("current")
+    assert not recorded
 
 
 def test_comment_invalid_object_id_rejected():

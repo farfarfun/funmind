@@ -8,6 +8,7 @@ from .topic import TopicElement
 
 
 class SheetElement(WorkbookMixinElement):
+    """表示 XMind 工作簿中的一个工作表及其根主题。"""
     TAG_NAME = const.TAG_SHEET
 
     def __init__(self, node=None, ownerWorkbook=None):
