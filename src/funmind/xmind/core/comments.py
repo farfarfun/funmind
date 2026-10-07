@@ -207,3 +207,9 @@ class ContentElement(Element):
     def setContent(self, content: str) -> None:
         """设置批注正文文本内容。"""
         self.setTextContent(content)
+
+
+utils.add_snake_case_aliases(CommentsBookDocument)
+utils.add_snake_case_aliases(CommentsBookElement)
+utils.add_snake_case_aliases(CommentElement)
+utils.add_snake_case_aliases(ContentElement)

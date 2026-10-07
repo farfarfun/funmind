@@ -13,6 +13,11 @@ logger = getLogger(__name__)
 
 
 class WorkbookLoader(object):
+    """从 `.xmind` 文件加载工作簿的解析器。
+
+    构造时接收文件路径；缺失文件会创建空工作簿，扩展名不合法时抛出
+    `InvalidXMindFileError`。使用 :meth:`get_workbook` 获取解析结果。
+    """
     def __init__(self, path: str) -> None:
         """加载指定路径的 XMind 工作簿。
 

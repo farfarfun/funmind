@@ -38,6 +38,7 @@ def split_hyperlink(hyperlink: str) -> tuple[str | None, str]:
 
 
 class TopicElement(WorkbookMixinElement):
+    """表示思维导图中的主题节点，可管理标题、子主题和元数据。"""
     TAG_NAME = const.TAG_TOPIC
 
     def __init__(self, node=None, ownerWorkbook=None):
@@ -465,6 +466,7 @@ utils.add_snake_case_aliases(TopicElement)
 
 
 class ChildrenElement(WorkbookMixinElement):
+    """表示主题的子主题容器。"""
     TAG_NAME = const.TAG_CHILDREN
 
     def __init__(self, node=None, ownerWorkbook=None):
@@ -480,6 +482,7 @@ class ChildrenElement(WorkbookMixinElement):
 
 
 class TopicsElement(WorkbookMixinElement):
+    """表示指定类型的一组子主题。"""
     TAG_NAME = const.TAG_TOPICS
 
     def __init__(self, node=None, ownerWorkbook=None):

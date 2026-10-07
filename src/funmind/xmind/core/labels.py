@@ -3,6 +3,7 @@ from .mixin import TopicMixinElement
 
 
 class LabelsElement(TopicMixinElement):
+    """表示主题所包含的标签集合。"""
     TAG_NAME = const.TAG_LABELS
 
     def __init__(self, node=None, ownerTopic=None):
@@ -10,6 +11,7 @@ class LabelsElement(TopicMixinElement):
 
 
 class LabelElement(TopicMixinElement):
+    """表示主题上的单个文本标签。"""
     TAG_NAME = const.TAG_LABEL
 
     def __init__(self, content=None, node=None, ownerTopic=None):

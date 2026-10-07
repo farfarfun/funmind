@@ -47,7 +47,7 @@ xmind.save(workbook, path="test.xmind")
 ```python
 from funmind import xmind
 
-workbook = xmind.load("demo.xmind")
+workbook = xmind.load("example/xmind/demo.xmind")
 print(workbook.to_prettify_json())
 
 sheet = workbook.get_primary_sheet()
@@ -62,13 +62,15 @@ for topic in root_topic.get_sub_topics() or []:
 from funmind import xmind
 from funmind.xmind.core.markerref import MarkerId
 
-workbook = xmind.load("demo.xmind")
+workbook = xmind.load("example/xmind/demo.xmind")
 root_topic = workbook.get_primary_sheet().get_root_topic()
 root_topic.add_marker(MarkerId.starRed)
 
 # 保存为新文件（推荐），或不传 path 直接覆盖原文件
 xmind.save(workbook, path="xmind_update_demo.xmind")
 ```
+
+`load()` 找不到指定文件时会创建空工作簿；解析或修改已有文件时，请确认路径指向实际存在的 `.xmind` 文件。
 
 更多示例见 `example/xmind/`（`create_xmind.py`、`parse_xmind.py`、`update_xmind.py`）。
 

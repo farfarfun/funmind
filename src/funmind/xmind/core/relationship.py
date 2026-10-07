@@ -7,6 +7,7 @@ from .topic import TopicElement
 
 
 class RelationshipElement(WorkbookMixinElement):
+    """表示同一工作表内两个主题之间的关系线。"""
     TAG_NAME = const.TAG_RELATIONSHIP
 
     def __init__(self, node=None, ownerWorkbook=None):
@@ -77,6 +78,7 @@ class RelationshipElement(WorkbookMixinElement):
 
 
 class RelationshipsElement(WorkbookMixinElement):
+    """表示工作表中全部关系线的容器。"""
     TAG_NAME = const.TAG_RELATIONSHIPS
 
     def __init__(self, node=None, ownerWorkbook=None):
@@ -90,3 +92,7 @@ class RelationshipsElement(WorkbookMixinElement):
             relationships.append(RelationshipElement(r, owner_workbook))
 
         return relationships
+
+
+utils.add_snake_case_aliases(RelationshipElement)
+utils.add_snake_case_aliases(RelationshipsElement)

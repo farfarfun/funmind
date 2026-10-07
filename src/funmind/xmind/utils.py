@@ -4,12 +4,21 @@ import re
 import tempfile
 import time
 import zipfile
+import warnings
+from contextvars import ContextVar
 from functools import wraps
 from hashlib import md5
 
 from xml.dom.minidom import parse, parseString
 
-_CAMEL_CASE_RE = re.compile(r'(?<!^)(?=[A-Z])')
+_CAMEL_CASE_RE = re.compile(r'([a-z0-9])([A-Z])')
+_SNAKE_CASE_CALL = ContextVar("funmind_snake_case_call", default=False)
+
+
+def _to_snake_case(name: str) -> str:
+    """将驼峰名称转换为 snake_case，并保留缩写词的完整性。"""
+    name = re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return _CAMEL_CASE_RE.sub(r'\1_\2', name).lower()
 
 # ********** Misc **********
 temp_dir = tempfile.mkdtemp
@@ -91,18 +100,49 @@ def prevent(func):
 
 
 def add_snake_case_aliases(cls: type) -> type:
-    """为 cls 上驼峰命名的公开方法批量添加 snake_case 别名（委托原方法）。
+    """为 cls 上驼峰命名的公开方法添加 snake_case 入口并弃用旧接口。
 
     本项目二次打包自上游 xmind 库，公开 API 大量沿用 Java/JS 风格的驼峰命名，
     与 SPEC.md 要求的 snake_case 命名规范冲突。为避免破坏性改名导致下游代码断裂，
-    这里仅追加委托别名，原驼峰方法继续保留、行为不变。
+    这里保留旧接口以兼容下游代码，但每次调用会发出 ``DeprecationWarning``；
+    请迁移到同名 snake_case 接口，旧接口将于 1.0 移除。
     """
     for name in list(vars(cls)):
         if name.startswith('_'):
             continue
-        snake = _CAMEL_CASE_RE.sub('_', name).lower()
-        if snake != name and not hasattr(cls, snake):
-            setattr(cls, snake, getattr(cls, name))
+        snake = _to_snake_case(name)
+        if snake == name:
+            continue
+
+        method = getattr(cls, name)
+        if not callable(method):
+            continue
+        if not hasattr(cls, snake):
+            @wraps(method)
+            def snake_case_method(*args, __method=method, **kwargs):
+                token = _SNAKE_CASE_CALL.set(True)
+                try:
+                    return __method(*args, **kwargs)
+                finally:
+                    _SNAKE_CASE_CALL.reset(token)
+
+            setattr(cls, snake, snake_case_method)
+
+        # 已手工标记弃用的方法无需再包一层，避免重复告警。
+        if "已弃用" in (method.__doc__ or ""):
+            continue
+
+        @wraps(method)
+        def deprecated_method(*args, __method=method, __name=name, __snake=snake, **kwargs):
+            if not _SNAKE_CASE_CALL.get():
+                warnings.warn(
+                    f"{__name} 已弃用，请改用 {__snake}，将于 1.0 移除",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            return __method(*args, **kwargs)
+
+        setattr(cls, name, deprecated_method)
     return cls
 
 
