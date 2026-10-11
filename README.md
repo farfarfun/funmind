@@ -13,6 +13,8 @@ git clone https://github.com/farfarfun/funmind.git
 cd funmind
 uv sync          # 安装依赖（含开发依赖）到本地虚拟环境
 uv run pytest    # 运行测试
+uv run ruff check .
+uv run ruff format .
 uv build         # 构建 wheel / sdist
 ```
 

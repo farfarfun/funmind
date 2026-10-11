@@ -206,10 +206,7 @@ class Element(Node):
             self._node.setAttributeNS(namespaceURI, qualifiedName, value)
 
     def getAttribute(self, attr_name: str) -> str | None:
-        """
-        Get attribute with specified name. And allowed get attribute with
-        specified name in ``prefix:localName`` format.
-        """
+        """获取指定名称的属性，也支持 ``prefix:localName`` 格式的属性名。"""
         if not self._node.hasAttribute(attr_name):
             localName = self.getLocalName(attr_name)
             if localName != attr_name:
