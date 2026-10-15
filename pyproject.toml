@@ -3,7 +3,7 @@ name = "funmind"
 version = "0.0.3"
 description = "XMind 思维导图文件读写库：以 XML 方式解析与生成 .xmind 工作簿，支持画布、主题树、标记、批注与样式操作"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "牛哥", email = "farfarfun@qq.com" }]
@@ -20,7 +20,7 @@ packages = ["src/funmind"]
 dev = ["pytest>=8.0", "funbuild>=1.6.66", "ruff>=0.8"]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]
